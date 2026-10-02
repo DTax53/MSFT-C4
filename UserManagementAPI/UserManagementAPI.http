@@ -1,0 +1,103 @@
+@UserManagementAPI_HostAddress = http://localhost:5253
+@apiToken = local-development-only-token
+
+### Missing token (expect 401)
+GET {{UserManagementAPI_HostAddress}}/api/users
+
+### Invalid token (expect 401)
+GET {{UserManagementAPI_HostAddress}}/api/users
+Authorization: Bearer invalid-token
+
+### Valid token can reach the API
+GET {{UserManagementAPI_HostAddress}}/api/users
+Authorization: Bearer {{apiToken}}
+
+### Create a user
+# @name createUser
+POST {{UserManagementAPI_HostAddress}}/api/users
+Authorization: Bearer {{apiToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+	"name": "Alex Morgan",
+	"email": "alex.morgan@example.com",
+	"department": "Human Resources"
+}
+
+### Retrieve all users
+GET {{UserManagementAPI_HostAddress}}/api/users
+Authorization: Bearer {{apiToken}}
+Accept: application/json
+
+### Retrieve the created user
+@userId = {{createUser.response.body.$.id}}
+GET {{UserManagementAPI_HostAddress}}/api/users/{{userId}}
+Authorization: Bearer {{apiToken}}
+Accept: application/json
+
+### Update the created user
+PUT {{UserManagementAPI_HostAddress}}/api/users/{{userId}}
+Authorization: Bearer {{apiToken}}
+Accept: application/json
+Content-Type: application/json
+
+{
+	"name": "Alex Morgan",
+	"email": "alex.morgan@example.com",
+	"department": "Information Technology"
+}
+
+### Delete the created user
+DELETE {{UserManagementAPI_HostAddress}}/api/users/{{userId}}
+Authorization: Bearer {{apiToken}}
+
+### Verify the user was deleted (expect 404)
+GET {{UserManagementAPI_HostAddress}}/api/users/{{userId}}
+Authorization: Bearer {{apiToken}}
+Accept: application/json
+
+### Invalid request (expect 400)
+POST {{UserManagementAPI_HostAddress}}/api/users
+Authorization: Bearer {{apiToken}}
+Content-Type: application/json
+
+{
+	"name": "",
+	"email": "not-an-email",
+	"department": ""
+}
+
+### Display name is not an email address (expect 400)
+POST {{UserManagementAPI_HostAddress}}/api/users
+Authorization: Bearer {{apiToken}}
+Content-Type: application/json
+
+{
+	"name": "Invalid Email Probe",
+	"email": "Display Name <probe@example.com>",
+	"department": "IT"
+}
+
+### Update a non-existent user (expect 404)
+PUT {{UserManagementAPI_HostAddress}}/api/users/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{apiToken}}
+Content-Type: application/json
+
+{
+	"name": "Missing User",
+	"email": "missing@example.com",
+	"department": "IT"
+}
+
+### Delete a non-existent user (expect 404)
+DELETE {{UserManagementAPI_HostAddress}}/api/users/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{apiToken}}
+
+### Malformed JSON body (expect 400 Problem Details)
+POST {{UserManagementAPI_HostAddress}}/api/users
+Authorization: Bearer {{apiToken}}
+Content-Type: application/json
+
+{malformed json
+
